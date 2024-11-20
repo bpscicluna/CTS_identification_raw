@@ -1,3 +1,145 @@
+### co-normalization
+
+library(mixOmics)
+library(limma)
+library(sva)
+
+# load Gains cohort data - g
+
+g[1:5,1:5]
+#         Probe CAP0019_1 CAP0020_5 CAP0021_1 CAP0022_5
+#1 ILMN_1762337  4.770594  4.896686  4.143051  4.735957
+#2 ILMN_2055271  5.504603  4.721227  5.068872  4.597434
+#3 ILMN_1736007  3.666458  4.072066  4.664058  3.836351
+#4 ILMN_2383229  4.186574  4.499400  4.898313  3.171909
+#5 ILMN_1806310  4.073422  3.991380  3.812324  4.143627
+
+rownames(g) <- g$Probe
+g.m <- data.matrix(g[,-1])
+
+g.m[1:5,1:5]
+
+#             CAP0019_1 CAP0020_5 CAP0021_1 CAP0022_5 CAP0023_1
+#ILMN_1762337  4.770594  4.896686  4.143051  4.735957  3.839883
+#ILMN_2055271  5.504603  4.721227  5.068872  4.597434  5.317243
+#ILMN_1736007  3.666458  4.072066  4.664058  3.836351  3.177338
+#ILMN_2383229  4.186574  4.499400  4.898313  3.171909  4.375654
+#ILMN_1806310  4.073422  3.991380  3.812324  4.143627  3.283559
+
+
+##### PC analysis and dot plot - mixOmics
+
+res = pca(t(g.m), ncomp = 10) # decomposing data to 10 components
+
+## load mars endotypes data - exp.e
+
+exp.e[1:5,1:5]
+#              03_04_2013_A01_3213.CEL 03_04_2013_A03_3199.CEL 03_04_2013_A05_3193.CEL 03_04_2013_A06_3191.CEL 03_04_2013_A07_3170.CEL
+#11715100_at                  2.430932                2.635036                2.346632                2.311040                2.334458
+#11715101_s_at                2.590743                2.665903                2.748758                3.095418                3.057909
+#11715102_x_at                2.639158                2.595763                2.552993                2.266556                2.413724
+#11715103_x_at                2.151153                2.360794                2.845359                2.096779                2.575808
+#11715104_s_at                2.184524                2.371379                2.078914                1.903558                2.150093
+
+#### PC analysis MARS
+
+res.1 = pca(t(exp.e), ncomp = 10) # decomposing data to 10 components
+
+#plot directly from component frame
+#png("xxxxx.png",height=2000,width=2000,res=300)
+plot(res.1$x[,1],res.1$x[,2],pch=16,cex=1.5)
+#abline(h=0,lty=2)
+#abline(v=0,lty=2)
+#dev.off()
+
+#### read annotations - bowtie
+
+anno <- read.table(file="Annotations_Bowtie.txt",header=T)
+
+dim(anno)
+[1] 85870     3
+
+
+#### annotate expression data in GAINS by merge
+
+head(anno)
+
+anno$Probe <- anno$probeID
+
+g.a <- merge(g,anno,by="Probe",all.x=T)
+
+g.f<-g.a[!is.na(g.a["gennames"]),]
+
+#    FP0118_3 CAP0381_1      probeID gennames                       biotype_gene
+#7  11.155849  9.606998 ILMN_1651228    RPS28                     protein_coding
+#8   6.418549  6.186745 ILMN_1651229    IPO13                     protein_coding
+#9   4.297437  3.868199 ILMN_1651230   PRSS41 transcribed_unprocessed_pseudogene
+#13  3.002593  5.965760 ILMN_1651237     CDT1                     protein_coding
+#16  4.187401  3.879909 ILMN_1651253    WIPF3                     protein_coding
+
+## collapse probes - only for microarray data
+exp.g <- collapseRows(g.m,rows.gains$gennames,rownames(g.m),method="Average")
+
+## vanish
+vn.anno.2 <- collapseRows(vn.anno.1,rows.merge$gennames,rownames(vn.anno.1),method="Average")
+
+#### extract the expression matix with collpased probes annotated by gene name
+
+e.gains[1:5,1:5]
+#        CAP0019_1 CAP0020_5 CAP0021_1 CAP0022_5 CAP0023_1
+#A1BG     4.585531  4.396647  4.866465  4.216892  4.247291
+#A1CF     3.583615  3.409115  3.445268  3.377611  3.250441
+#A2M-AS1  5.181641  4.814242  4.819285  5.039779  3.999259
+#A3GALT2  4.285990  4.219146  3.954903  3.873169  3.525412
+#A4GALT   2.716849  2.543521  2.621022  2.407941  2.934856
+
+
+e.mars <- exp.a$datETcollapsed
+e.mars[1:5,1:5]
+#        03_04_2013_A01_3213.CEL 03_04_2013_A03_3199.CEL 03_04_2013_A05_3193.CEL 03_04_2013_A06_3191.CEL 03_04_2013_A07_3170.CEL
+#A1CF                   1.992758                2.022070                2.214409                1.962555                2.551708
+#A2M                    1.990577                2.103996                2.467999                1.789704                2.205563
+#A3GALT2                2.310610                2.216817                2.413800                2.193303                2.408598
+#A4GALT                 2.314791                2.514968                2.450279                2.499034                2.586491
+#A4GNT                  2.187031                2.120774                2.092695                2.483768                2.094641
+
+#### mergeing the mars and gains exp data
+
+e.gains <- exp.g$datETcollapsed
+e.gains.df <- as.data.frame(e.gains)
+e.mars.df <- as.data.frame(e.mars)
+e.gains.df$gene <- rownames(e.gains.df)
+e.mars.df$gene <- rownames(e.mars.df)
+exp.x.df <- merge(e.mars.df,e.gains.df,by="gene")
+
+##### first look at the PCs
+
+res.1 = pca(t(exp.x), ncomp = 10) # decomposing data to 10 components
+
+png("mars_gains_combo_PREcombat_PCplot.png",height=2000,width=2000,res=300)
+plot(res.1$x[,1],res.1$x[,2],col=c("blue","orange")[p$batch],pch=16,cex=1)
+dev.off()
+
+#### of course the PC plot shows a massive separation between studies - normal stuff - prepare COMBAT
+
+##### combat
+
+library(sva)
+
+p <- read.table(file="colnames_combined_cohorts_wBatch.txt",header=T)
+batch=p$batch
+#modcombat=model.matrix(~0,data=pheno$group.1)
+exp.x.combat=ComBat(dat=exp.x,batch=batch,par.prior=TRUE,prior.plots=FALSE)
+
+res.2 = pca(t(exp.x.combat), ncomp = 10) # decomposing data to 10 components
+
+#plot directly from component frame
+png("mars_gains_combo_combat_PCplot.png",height=2000,width=2000,res=300)
+plot(res.2$x[,1],res.2$x[,2],col=c("blue","orange")[p$batch],pch=16,cex=1)
+dev.off()
+
+### MARS, GAinS and Stanford subtype annotations using respective published methods
+
 ###
 ### Jaccard similarity
 ###
@@ -140,53 +282,6 @@ phyper(overlap-1, SW2, total-SW2, M1, lower.tail= FALSE)
 ....
 
 ### execute for all combinations
-
-
-#### heatmap
-
-# Load the pheatmap library
-library(pheatmap)
-
-# Create the data frame
-data <- data.frame(
-  ID = c("03_04_2013_A01_3213.CEL", "03_04_2013_A03_3199.CEL", "03_04_2013_A05_3193.CEL", 
-         "03_04_2013_A06_3191.CEL", "03_04_2013_A07_3170.CEL", "03_04_2013_A09_3172.CEL"),
-  M1 = c(1, 0, 0, 0, 1, 1),
-  M2 = c(0, 1, 0, 1, 0, 0),
-  M3 = c(0, 0, 1, 0, 0, 0),
-  M4 = c(0, 0, 0, 0, 0, 0),
-  S1 = c(1, 1, 1, 1, 0, 0),
-  S2 = c(0, 0, 0, 0, 1, 1),
-  S3 = c(0, 0, 0, 0, 0, 0),
-  SW1 = c(0, 0, 0, 1, 0, 0),
-  SW2 = c(0, 0, 1, 0, 0, 1),
-  SW3 = c(1, 1, 0, 0, 1, 0)
-)
-
-
-### heatmap
-
-library(pheatmap)
-# Remove the ID column for heatmap creation 
-dat.1f <- dat.1[, -1]  # Exclude the ID column
-
-# Create a heatmap using pheatmap
-png("binary_heatmap_consensus_overlap.png",height=600,width=2000,res=300)
-pheatmap(t(dat.1m), 
-         cluster_rows = FALSE, 
-         cluster_cols = TRUE,  # No clustering on columns unless you want it
-         color = c("lightgrey", "midnightblue"),  # White for 0, Blue for 1
-         labels_row = colnames(dat.1m),# Use the ID column for row labels
-         labels_col = " ",
-         display_numbers = FALSE,  # Show the 1s and 0s on the heatmap
-         fontsize = 10,
-         fontsize_row = 8,
-         fontsize_col = 10,
-         clustering_distance_rows = "binary",
-         legend = FALSE,
-         treeheight_row = 0)
-dev.off()
-
 
 ### select core
 
@@ -347,6 +442,9 @@ print(rf)
 exp.class <- exp.final[rownames(class),]
 
 exp.class[1:5,1:5]
+
+
+### predict CTS in co-normalized VANISH
 
 p2 <- predict(rf, t(vanish.class))
 
