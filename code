@@ -1,0 +1,390 @@
+###
+### Jaccard similarity
+###
+library(jaccard)
+set.seed(2024)
+
+dat <- read.table(file.choose(),header=T)
+
+head(dat)
+##
+
+table(dat$SRS)
+
+dat$M1 <- ifelse(dat$MARS=="Mars1", 1,0)
+dat$M2 <- ifelse(dat$MARS=="Mars2", 1,0)
+dat$M3 <- ifelse(dat$MARS=="Mars3", 1,0)
+dat$M4 <- ifelse(dat$MARS=="Mars4", 1,0)
+dat$S1 <- ifelse(dat$SRS=="SRS1", 1,0)
+dat$S2 <- ifelse(dat$SRS=="SRS2", 1,0)
+dat$S3 <- ifelse(dat$SRS=="SRS3", 1,0)
+dat$SW1 <- ifelse(dat$Stanford=="S1", 1,0)
+dat$SW2 <- ifelse(dat$Stanford=="S2", 1,0)
+dat$SW3 <- ifelse(dat$Stanford=="S3", 1,0)
+
+dat.1 <- dat[,-(2:4)]
+rownames(dat.1)<-dat.1$ID
+
+dat.m <-data.matrix(dat.1[,-1])
+
+jac.1 <- jaccard(dat.1$M1,dat.1$S1)
+jac.2 <- jaccard(dat.1$M2,dat.1$S1)
+jac.3 <- jaccard(dat.1$M3,dat.1$S1)
+jac.4 <- jaccard(dat.1$M4,dat.1$S1)
+jac.5 <- jaccard(dat.1$M1,dat.1$S2)
+jac.6 <- jaccard(dat.1$M2,dat.1$S2)
+jac.7 <- jaccard(dat.1$M3,dat.1$S2)
+jac.8 <- jaccard(dat.1$M4,dat.1$S2)
+jac.9 <- jaccard(dat.1$M1,dat.1$S3)
+jac.10 <- jaccard(dat.1$M2,dat.1$S3)
+jac.11 <- jaccard(dat.1$M3,dat.1$S3)
+jac.12 <- jaccard(dat.1$M4,dat.1$S3)
+jac.13 <- jaccard(dat.1$M1,dat.1$SW1)
+jac.14 <- jaccard(dat.1$M2,dat.1$SW1)
+jac.15 <- jaccard(dat.1$M3,dat.1$SW1)
+jac.16 <- jaccard(dat.1$M4,dat.1$SW1)
+jac.17 <- jaccard(dat.1$S1,dat.1$SW1)
+jac.18 <- jaccard(dat.1$S2,dat.1$SW1)
+jac.19 <- jaccard(dat.1$S3,dat.1$SW1)
+jac.20 <- jaccard(dat.1$M1,dat.1$SW2)
+jac.21 <- jaccard(dat.1$M2,dat.1$SW2)
+jac.22 <- jaccard(dat.1$M3,dat.1$SW2)
+jac.23 <- jaccard(dat.1$M4,dat.1$SW2)
+jac.24 <- jaccard(dat.1$S1,dat.1$SW2)
+jac.25 <- jaccard(dat.1$S2,dat.1$SW2)
+jac.26 <- jaccard(dat.1$S3,dat.1$SW2)
+jac.27 <- jaccard(dat.1$M1,dat.1$SW3)
+jac.28 <- jaccard(dat.1$M2,dat.1$SW3)
+jac.29 <- jaccard(dat.1$M3,dat.1$SW3)
+jac.30 <- jaccard(dat.1$M4,dat.1$SW3)
+jac.31 <- jaccard(dat.1$S1,dat.1$SW3)
+jac.32 <- jaccard(dat.1$S2,dat.1$SW3)
+jac.33 <- jaccard(dat.1$S3,dat.1$SW3)
+
+
+
+
+### Jaccard distances and probabilities 
+### Mars1 to SRS1 = 0.1119005 
+### Mars1 to SRS2 = 0.2264398 
+### Mars2 to SRS1 = 0.5667939
+### Mars2 to SRS2 = 0.1376884
+### Mars3 to SRS1 = 0.0192044
+### Mars3 to SRS2 = 0.4598338
+### Mars4 to SRS1 = 0.02934537
+### Mars4 to SRS2 = 0.07876231
+### Mars1 to SW1 = 0.1081594
+### Mars2 to SW1 = 0.4753788
+### Mars3 to SW1 = 0.0339233
+### Mars4 to SW1 = 0.035
+### Mars1 to SW2 =  0.1013289
+### Mars2 to SW2 = 0.06319703
+### Mars3 to SW2 = 0.5087041
+### Mars4 to SW2 = 0.1103604
+### Mars1 to SW3 = 0.2706935
+### Mars2 to SW3 = 0.2091918
+### Mars3 to SW3 = 0.1138211
+### Mars4 to SW3 = 0.01530612
+### S1 to SW1 = 0.4787879
+### S2 to SW1 = 0.115508
+### S1 to SW2 = 0.02918782
+### S2 to SW2 = 0.5327869
+### S1 to SW3 = 0.2156197
+### S2 to SW3 = 0.241838
+###
+### Markov clustering
+###
+
+
+library(MCL)
+
+dat.mcl <- read.table(file.choose(),header=T)
+dat.mcl
+
+#M1         M2        M3         M4         S1         S2       SW1        SW2        SW3
+#M1  1.0000000 0.00000000 0.0000000 0.00000000 0.11190050 0.22643980 0.1081594 0.10132890 0.27069350
+#M2  0.0000000 1.00000000 0.0000000 0.00000000 0.56679390 0.13768840 0.4753788 0.06319703 0.20919180
+#M3  0.0000000 0.00000000 1.0000000 0.00000000 0.01920440 0.45983380 0.0339233 0.50870410 0.11382110
+#M4  0.0000000 0.00000000 0.0000000 1.00000000 0.02934537 0.07876231 0.0350000 0.11036040 0.01530612
+#S1  0.1119005 0.56679390 0.0192044 0.02934537 1.00000000 0.00000000 0.4787879 0.02918782 0.21561970
+#S2  0.2264398 0.13768840 0.4598338 0.07876231 0.00000000 1.00000000 0.1155080 0.53278690 0.24183800
+#SW1 0.1081594 0.47537880 0.0339233 0.03500000 0.47878790 0.11550800 1.0000000 0.00000000 0.00000000
+#SW2 0.1013289 0.06319703 0.5087041 0.11036040 0.02918782 0.53278690 0.0000000 1.00000000 0.00000000
+#SW3 0.2706935 0.20919180 0.1138211 0.01530612 0.21561970 0.24183800 0.0000000 0.00000000 1.00000000
+
+mcl.1 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=1)
+mcl.2 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=2)
+mcl.3 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=3)
+mcl.4 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=4)
+mcl.5 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=5)
+mcl.6 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=6)
+mcl.7 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=7)
+mcl.8 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=8)
+mcl.9 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=9)
+mcl.10 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=10)
+
+mcl <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=2)
+mcl
+
+
+##
+## Hyper test enrichment
+##
+
+phyper(overlap-1, S1, total-S1, M1, lower.tail= FALSE)
+phyper(overlap-1, S2, total-S2, M1, lower.tail= FALSE)
+phyper(overlap-1, S1, total-S1, M2, lower.tail= FALSE)
+phyper(overlap-1, S2, total-S2, M2, lower.tail= FALSE)
+phyper(overlap-1, SW1, total-SW1, M1, lower.tail= FALSE)
+phyper(overlap-1, SW2, total-SW2, M1, lower.tail= FALSE)
+....
+
+### execute for all combinations
+
+
+#### heatmap
+
+# Load the pheatmap library
+library(pheatmap)
+
+# Create the data frame
+data <- data.frame(
+  ID = c("03_04_2013_A01_3213.CEL", "03_04_2013_A03_3199.CEL", "03_04_2013_A05_3193.CEL", 
+         "03_04_2013_A06_3191.CEL", "03_04_2013_A07_3170.CEL", "03_04_2013_A09_3172.CEL"),
+  M1 = c(1, 0, 0, 0, 1, 1),
+  M2 = c(0, 1, 0, 1, 0, 0),
+  M3 = c(0, 0, 1, 0, 0, 0),
+  M4 = c(0, 0, 0, 0, 0, 0),
+  S1 = c(1, 1, 1, 1, 0, 0),
+  S2 = c(0, 0, 0, 0, 1, 1),
+  S3 = c(0, 0, 0, 0, 0, 0),
+  SW1 = c(0, 0, 0, 1, 0, 0),
+  SW2 = c(0, 0, 1, 0, 0, 1),
+  SW3 = c(1, 1, 0, 0, 1, 0)
+)
+
+
+### heatmap
+
+library(pheatmap)
+# Remove the ID column for heatmap creation 
+dat.1f <- dat.1[, -1]  # Exclude the ID column
+
+# Create a heatmap using pheatmap
+png("binary_heatmap_consensus_overlap.png",height=600,width=2000,res=300)
+pheatmap(t(dat.1m), 
+         cluster_rows = FALSE, 
+         cluster_cols = TRUE,  # No clustering on columns unless you want it
+         color = c("lightgrey", "midnightblue"),  # White for 0, Blue for 1
+         labels_row = colnames(dat.1m),# Use the ID column for row labels
+         labels_col = " ",
+         display_numbers = FALSE,  # Show the 1s and 0s on the heatmap
+         fontsize = 10,
+         fontsize_row = 8,
+         fontsize_col = 10,
+         clustering_distance_rows = "binary",
+         legend = FALSE,
+         treeheight_row = 0)
+dev.off()
+
+
+### select core
+
+dat.1$CSE2.core <- ifelse((dat.1$M1==1&dat.1$S2==1&dat.1$SW3==1),"yes","no")
+dat.1$CSE1.core <- ifelse((dat.1$M2==1&dat.1$S1==1&dat.1$SW1==1),"yes","no")
+dat.1$CSE3.core <- ifelse((dat.1$M3==1&dat.1$S2==1&dat.1$SW2==1),"yes","no")
+
+table(dat.1$CSE1.core)
+table(dat.1$CSE2.core)
+table(dat.1$CSE3.core)
+
+dat.core <- subset(dat.1,dat.1$CSE1.core=="yes"|dat.1$CSE2.core=="yes"|dat.1$CSE3.core=="yes")
+dim(dat.core)
+
+write.table(dat.core,file="coreSamples_CSE.txt")
+
+dim(exp.consensus)
+# [1] 7260  1122
+
+
+####
+### classifier derivation
+
+library(CMA)
+library(randomForest)
+
+set.seed(2024)
+
+phenos.1 <- dat.core
+
+tenCVdat <- GenerateLearningsets(n=460,y=as.factor(phenos.1$CSE), method = "CV", fold=10, niter=10, strat =TRUE)
+sel <- GeneSelection(t(exp.norm), y=as.factor(phenos.1$CSE), learningsets = tenCVdat, method = "kruskal", scheme="one-vs-all")
+
+class_rf_0 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=1)
+class_rf_1 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=2)
+class_rf_2 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=3)
+class_rf_3 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=4)
+class_rf_4 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=5)
+class_rf_5 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=6)
+class_rf_6 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=7)
+class_rf_7 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=8)
+class_rf_8 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=9)
+class_rf_9 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=10)
+class_rf_10 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=12)
+class_rf_11 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=14)
+class_rf_12 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=16)
+class_rf_13 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=18)
+class_rf_14 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=20)
+class_rf_15 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=25)
+class_rf_16 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=30)
+class_rf_17 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=40)
+class_rf_18 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=50)
+class_rf_19 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=75)
+class_rf_20 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=100)
+class_rf_21 <- classification(t(exp.norm), as.factor(phenos.1$CSE), learningsets = tenCVdat, classifier = rfCMA, genesel=sel,nbgene=150)
+
+dalike <- list(class_rf_0,class_rf_1,class_rf_2,class_rf_3,class_rf_4,class_rf_5,class_rf_6,class_rf_7,class_rf_8,class_rf_9,class_rf_10,class_rf_11,class_rf_12,class_rf_13,class_rf_14,class_rf_15,class_rf_16,class_rf_17,class_rf_18,
+               class_rf_19,class_rf_20,class_rf_21)
+png("classifier_error_metrics.png",height=1000,width=3000,res=300)
+par(mfrow = c(1,3))
+comparison <- compare(dalike,plot = TRUE,measure = c("misclassification", "brier score", "average probability"), col=c("white"))#,"white","white","white","white","white","white","white","white","white","white","white","white","white","white"))
+abline(h=0.05,col="red")
+dev.off() 
+
+print(comparison)
+
+
+
+# misclassification brier.score average.probability
+#rf          0.06586957  0.09475486           0.9019465
+#rf2         0.03739130  0.05923611           0.9256443
+#rf3         0.03173913  0.05512047           0.9271396
+#rf4         0.02847826  0.05195426           0.9269400
+#rf5         0.02565217  0.04784719           0.9275078
+#rf6         0.02543478  0.04580106           0.9293413
+#rf7         0.02434783  0.04508941           0.9279504
+#rf8         0.02565217  0.04484890           0.9267517
+#rf9         0.02630435  0.04487768           0.9264383
+#rf10        0.02543478  0.04500928           0.9252461
+#rf11        0.02565217  0.04432214           0.9248013
+#rf12        0.02260870  0.04319396           0.9247300
+#rf13        0.02456522  0.04365180           0.9231657
+#rf14        0.02413043  0.04442122           0.9221335
+#rf15        0.02478261  0.04491575           0.9205935
+#rf16        0.02500000  0.04463868           0.9189861
+#rf17        0.02456522  0.04440723           0.9176113
+#rf18        0.02326087  0.04619446           0.9137035
+#rf19        0.02347826  0.04697938           0.9113126
+#rf20        0.02456522  0.05016003           0.9061300
+#rf21        0.02500000  0.05143319           0.9020687
+#rf22        0.02521739  0.05357631           0.8968239
+
+comparison <- compare(dalike,plot = TRUE,ylim=c(0,0.25), measure = c("brier score"), col=c("white"))#,"white","white","white","white","white","white","white","white","white","white","white","white","white","white"))
+
+top.sel = toplist(sel,k=50,iter=1)
+
+exp.core <- exp.combat.consensus[,rownames(core)]
+
+exp.core[1:5,1:5]
+
+#                     03_04_2013_A06_3191.CEL 03_04_2013_A07_3170.CEL 03_04_2013_B05_3273.CEL 03_04_2013_B11_2547.CEL 03_04_2013_C06_2765.CEL
+#ENSG00000000938                9.835223                9.175543                9.793752                8.935259                9.416509
+#ENSG00000001084                3.255816                3.677825                3.284701                3.412334                3.477205
+#ENSG00000001167                5.103573                4.852766                4.860181                4.685487                4.645768
+#ENSG00000001461                4.703481                4.252066                4.898815                4.843714                4.973605
+#ENSG00000001497                4.199053                4.284692                4.323344                4.020702                4.583923
+
+exp.norm[1:5,1:5]
+
+#                     03_04_2013_A06_3191.CEL 03_04_2013_A07_3170.CEL 03_04_2013_B05_3273.CEL 03_04_2013_B11_2547.CEL 03_04_2013_C06_2765.CEL
+#ENSG00000000938               0.7424130               0.6735182               0.8432778               0.6795802               0.6968092
+#ENSG00000001084               0.2526683               0.2849291               0.2423196               0.2608933               0.2674523
+#ENSG00000001167               0.3787524               0.3539973               0.3806146               0.3531788               0.3679799
+#ENSG00000001461               0.3797446               0.3083979               0.3842116               0.3637744               0.3880234
+#ENSG00000001497               0.3227176               0.3187273               0.3318100               0.3226539               0.3388419
+
+### classifier tests
+
+library(randomForest)
+
+exp.class <- exp.core[rownames(class),]
+c.core <- c.1[colnames(exp.core.class),]
+
+dim(exp.core.class)
+exp.core.class[1:5,1:5]
+
+cts <- as.factor(core$CTS)
+
+rf <- randomForest(cse~., data=t(exp.core.class), proximity=TRUE) 
+
+# Predict posterior probabilities
+pred_probs <- predict(rf, t(vanish.class), type = "prob")
+
+# Display the posterior probabilities
+head(pred_probs)
+pred_probs <- as.data.frame(pred_probs)
+pred_probs$chipID <- rownames(pred_probs)
+pred_pr
+write.table(pred_probs,file="posterior_probabilities_ALL.txt")
+
+plot(pred_probs)
+                              
+print(rf)
+
+#Call:
+#  randomForest(formula = cse ~ ., data = t(exp.class), proximity = TRUE) 
+#Type of random forest: classification
+#Number of trees: 500
+#No. of variables tried at each split: 4
+#
+#OOB estimate of  error rate: 2.17%
+#Confusion matrix:
+#  1  2   3 class.error
+#1 214  0   1 0.004651163
+#2   2 77   2 0.049382716
+#3   1  4 159 0.03048780
+
+exp.class <- exp.final[rownames(class),]
+
+exp.class[1:5,1:5]
+
+p2 <- predict(rf, t(vanish.class))
+
+summary(p2)
+
+p2 <- as.data.frame(p2)
+head(p2)
+
+p2$chipID <- rownames(p2)
+head(p2)
+
+p1                  chipID
+03_04_2013_A01_3213.CEL  1 03_04_2013_A01_3213.CEL
+03_04_2013_A03_3199.CEL  1 03_04_2013_A03_3199.CEL
+03_04_2013_A05_3193.CEL  3 03_04_2013_A05_3193.CEL
+03_04_2013_A06_3191.CEL  1 03_04_2013_A06_3191.CEL
+03_04_2013_A07_3170.CEL  2 03_04_2013_A07_3170.CEL
+03_04_2013_A09_3172.CEL  2 03_04_2013_A09_3172.CEL
+
+##### silhouette
+
+library(cluster)
+cts.vn <- p2$p2
+rf <- randomForest(cts.vn~., data=t(vanish.class), proximity=TRUE) 
+
+proximity_matrix <- rf$proximity
+distance_rf <- as.dist(1 - proximity_matrix)
+
+sil=silhouette(as.numeric(cts.vn),dist=distance_rf) # silhouette function
+
+
+fviz_silhouette(sil)
+
+
+# plot the results to pdf
+pdf("silhouettes_VANISHsamples.pdf")
+plot(sil,col=c("royalblue", "#B2DF8A", "orange"))
+dev.off()
+
+###
+
