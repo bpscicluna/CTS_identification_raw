@@ -1,4 +1,4 @@
-### Consensus Transcriptomic Subtypes of Sepsis script - Scicluna
+### Consensus Transcriptomic Subtypes of Sepsis R script - Scicluna
 
 library(mixOmics)
 library(limma)
@@ -10,7 +10,7 @@ library(jaccard)
 library(cluster)
 library(ggplot2)
 library(effects)
-
+library(rcompanion)
 
 
 ### MARS, GAinS and Stanford subtype assignments binary heatmap
@@ -78,6 +78,7 @@ pdf("silhouettes_COREsamples.pdf")
 plot(sil,col=c("royalblue", "#B2DF8A", "orange"))
 dev.off()
 
+### Jaccard distances used as input in Cytoscape together with prevalence (node size)
 
 ### Gene classifier heatmap
 
@@ -92,15 +93,15 @@ pheatmap(exp.c.m, color = colorRampPalette(rev(brewer.pal(n = 11, name = "PuOr")
 dev.off()
 #
 
-# Assign VANISH samples to CTS after co-normalization using combat
-
-exp.vanish.class <- read.csv("exp.vanish.class.txt", row.names=1, sep="", stringsAsFactors=TRUE)
-pred_van <- predict(rf, t(exp.vanish.class), type = "prob")
-
 
 ###
 ### CTS and VANISH clinical associations for Placebo or Hydrocortisone treated only
 ###
+
+# Assign VANISH samples to CTS after co-normalization using combat
+
+exp.vanish.class <- read.csv("exp.vanish.class.txt", row.names=1, sep="", stringsAsFactors=TRUE)
+pred_van <- predict(rf, t(exp.vanish.class), type = "prob") # combine with clinical data from the VANISH study and select placebo or hydrocortisone for further analysis
 
 p3.2 <- read.csv("VANISH_CTS_assignments.csv", stringsAsFactors=TRUE)
 
@@ -228,7 +229,52 @@ dev.off()
 #### CTS association to clinical data MARS and GAINS
 ####
 
+c.1 <- read.csv("CTS_assigned_MARS_GAinS_ClinicalData.csv", stringsAsFactors=TRUE)
 c.1$CTS <- as.factor(c.1$CTS)
+
+head(c.1)
+table(c.1$study)
+# gains  mars 
+# 444   678 
+mars.c <- subset(c.1,c.1$study=="mars")
+dunn.test(mars.c$Peak_SOFA,mars.c$CTS)
+
+gains.c <- subset(c.1,c.1$study=="gains")
+dunn.test(gains.c$Peak_SOFA,gains.c$CTS)
+t.m <- table(mars.c$CTS,mars.c$death_in_ICU)
+chisq.test(t.m)
+
+png("Death_in_ICU_barplot_MARS.png",height=1500,width=1000,res=300)
+barplot(t(t.m),ylim=c(0,400),col=c("grey","darkred"))
+dev.off()
+
+t.g <- table(gains.c$CTS,gains.c$death_in_ICU)
+chisq.test(t.g)
+
+png("Death_in_ICU_barplot_GAINS.png",height=1500,width=1000,res=300)
+barplot(t(t.g),ylim=c(0,400),col=c("grey","darkred"))
+dev.off()
+
+t <- table(c.1$CTS,c.1$death_in_ICU)
+chisq.test(t)
+
+t.3 <- table(c.1$pneumonia,c.1$CTS)
+chisq.test(t.3)
+
+t.4 <- table(c.1$abdo,c.1$CTS)
+chisq.test(t.4)
+
+png("Death_in_ICU_barplot_ALL.png",height=1500,width=1000,res=300)
+barplot(t(t),ylim=c(0,700),col=c("grey","darkred"))
+dev.off()
+
+png("Pneumonia_barplot_ALL.png",height=1500,width=1000,res=300)
+barplot(t.3,ylim=c(0,700),col=c("grey","steelblue"))
+dev.off()
+
+png("Abdo_barplot_ALL.png",height=1500,width=1000,res=300)
+barplot(t.4,ylim=c(0,700),col=c("grey","steelblue"))
+dev.off()
 
 png("SOFA_Violin_ALL.png",height=800,width=1000,res=300)
 p <- ggplot(c.1, aes(x=as.factor(CTS), y=Peak_SOFA, fill=CTS)) +
@@ -259,5 +305,13 @@ p <- ggplot(gains.c, aes(x=as.factor(CTS), y=Peak_SOFA, fill=CTS)) +
   theme_classic()
 p
 dev.off()
+
+#####
+##### corticosteroids and MARS CTS
+#####
+
+
+
+
 
 
