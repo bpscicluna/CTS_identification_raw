@@ -151,13 +151,13 @@ results <- data.frame(
 
 print(results)
 
-#                                  OR   CI_lower   CI_upper
-#(Intercept)                 0.3125000 0.11448045  0.8530386
-#drug2Placebo                1.2000000 0.30361078  4.7429145
-#as.factor(p2)2              5.7600000 1.30537527 25.4161396
-#as.factor(p2)3              1.7066667 0.45550973  6.3943993
-#drug2Placebo:as.factor(p2)2 0.3086420 0.03543801  2.6880707
-#drug2Placebo:as.factor(p2)3 0.3551136 0.05370550  2.3480967
+#                               OR   CI_lower   CI_upper
+#(Intercept)            0.3125000 0.11448045  0.8530386
+#drug2Placebo           1.2000000 0.30361078  4.7429145
+#CTS_pred2              5.7600000 1.30537527 25.4161396
+#CTS_pred3              1.7066667 0.45550973  6.3943993
+#drug2Placebo:CTS_pred2 0.3086420 0.03543801  2.6880707
+#drug2Placebo:CTS_pred3 0.3551136 0.05370550  2.3480967
 
 effect_plot <- allEffects(model)
 
