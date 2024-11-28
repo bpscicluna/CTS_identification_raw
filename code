@@ -9,6 +9,7 @@ library(MCL)
 library(jaccard)
 library(cluster)
 library(ggplot2)
+library(effects)
 
 
 
@@ -105,12 +106,135 @@ pred_probs$chipID <- rownames(pred_probs)
 pred_pr
 write.table(pred_probs,file="posterior_probabilities_ALL.txt")
 
+###
+### CTS and VANISH clinical associations
+###
 
+p3 <- read.csv("VANISH_CTS_assignments.csv", stringsAsFactors=TRUE)
+p3.2 <- subset(p3,p3$drug2=="Placebo"|p3$drug2=="Hydrocortisone")
 
+p3.2.cts1 <- subset(p3.2,p3.2$CTS_pred=="1")
+p3.2.cts2 <- subset(p3.2,p3.2$CTS_pred=="2")
+p3.2.cts3 <- subset(p3.2,p3.2$CTS_pred=="3")
+
+t.v.1 <- table(p3.2.cts1$drug2,p3.2.cts1$outcome.day28)
+t.v.1
+
+t.v.2 <- table(p3.2.cts2$drug2,p3.2.cts2$outcome.day28)
+t.v.2
+
+t.v.3 <- table(p3.2.cts3$drug2,p3.2.cts3$outcome.day28)
+t.v.3
+
+png("VANISH_CTS1_hydro.png",height=1300,width=800,res=300)
+barplot(t(t.v.1),col=c("grey","#FF3333"),ylim=c(0,30))
+dev.off()
+
+png("VANISH_CTS2_hydro.png",height=1300,width=800,res=300)
+barplot(t(t.v.2),col=c("grey","#FF3333"),ylim=c(0,30))
+dev.off()
+
+png("VANISH_CTS3_hydro.png",height=1300,width=800,res=300)
+barplot(t(t.v.3),col=c("grey","#FF3333"),ylim=c(0,30))
+dev.off()
+
+# Fit an interaction model on the matched dataset
+model <- glm(outcome.day28 ~ drug2 * CTS_pred, data = p3.2, family = binomial)
+
+# Summarize the model to examine the interaction effect
+model_summary <- summary(model)
+
+# Extract coefficients
+coefs <- model_summary$coefficients
+
+# Calculate odds ratios
+odds_ratios <- exp(coefs[, "Estimate"])
+
+# Calculate 95% confidence intervals
+ci_lower <- exp(coefs[, "Estimate"] - 1.96 * coefs[, "Std. Error"])
+ci_upper <- exp(coefs[, "Estimate"] + 1.96 * coefs[, "Std. Error"])
+
+# Combine results into a data frame
+results <- data.frame(
+  OR = odds_ratios,
+  CI_lower = ci_lower,
+  CI_upper = ci_upper
+)
+
+print(results)
+
+#                                  OR   CI_lower   CI_upper
+#(Intercept)                 0.3125000 0.11448045  0.8530386
+#drug2Placebo                1.2000000 0.30361078  4.7429145
+#as.factor(p2)2              5.7600000 1.30537527 25.4161396
+#as.factor(p2)3              1.7066667 0.45550973  6.3943993
+#drug2Placebo:as.factor(p2)2 0.3086420 0.03543801  2.6880707
+#drug2Placebo:as.factor(p2)3 0.3551136 0.05370550  2.3480967
+
+effect_plot <- allEffects(model)
+
+# Plot the effects, including the interaction
+plot(effect_plot, multiline = TRUE, ci.style = "bands", main = "Interaction Effect Plot")
+
+# Create new data for predictions
+new_data <- expand.grid(
+  drug2 = c("Hydrocortisone", "Placebo"), # Replace with actual levels
+  CTS_pred = factor(c(1, 2, 3)) 
+)
+
+# Add predicted probabilities
+new_data$predicted_prob <- predict(model, new_data, type = "response")
+
+png("VANISH_CTS_probabilitiesInteraction.png",height=1500,width=2000,res=300)
+gg <- ggplot(new_data, aes(x = CTS_pred, y = predicted_prob, color = drug2, group = drug2)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = "Predicted Probabilities with Interaction",
+    x = "CTS_pred Levels",
+    y = "Predicted Probability",
+    color = "Drug Group"
+  ) +
+  theme_classic()
+plot(gg)
+dev.off()
+
+# Generate predictions with confidence intervals
+predictions <- predict(model, new_data, type = "link", se.fit = TRUE)
+new_data$predicted_prob <- plogis(predictions$fit)
+new_data$lower <- plogis(predictions$fit - 1.96 * predictions$se.fit)
+new_data$upper <- plogis(predictions$fit + 1.96 * predictions$se.fit)
+
+# Plot with ggplot2
+png("VANISH_CTS_probabilitiesInteraction.png",height=1500,width=2000,res=300)
+ggplot(new_data, aes(x = CTS_pred, y = predicted_prob, color = drug2, group = drug2)) +
+  geom_line(size = 1.2) +                     # Plot lines for predictions
+  geom_point(size = 3) +                      # Plot points for predictions
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = drug2), 
+              alpha = 0.2, linetype = 0) +    # Add custom shading for CIs
+  scale_fill_manual(values = c("Placebo" = "#99CCFF",  # Custom color for Placebo
+                               "Hydrocortisone" = "#FF9999")) +  # Custom color for reference drug
+  scale_color_manual(values = c("Placebo" = "#3366CC",  # Matching line color
+                                "Hydrocortisone" = "#FF3333")) +  # Matching line color
+  labs(
+    title = "Predicted Probabilities with Custom CI Colors",
+    x = "CTS_pred Levels",
+    y = "Predicted Probability",
+    color = "Drug Group",
+    fill = "Drug Group"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text = element_text(size = 14),   # Increase axis text size
+    axis.title = element_text(size = 16),  # Increase axis title size
+    legend.text = element_text(size = 12), # Increase legend text size
+    legend.title = element_text(size = 14) # Increase legend title size
+  )
+dev.off()
 
 
 ####
-#### CTS association to clinical data
+#### CTS association to clinical data MARS and GAINS
 ####
 
 
