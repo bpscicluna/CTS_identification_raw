@@ -92,26 +92,17 @@ pheatmap(exp.c.m, color = colorRampPalette(rev(brewer.pal(n = 11, name = "PuOr")
 dev.off()
 #
 
-# Assign VANISH samples to CTS
+# Assign VANISH samples to CTS after co-normalization using combat
 
-exp.vanish <- read.delim("vn.anno.2.txt", row.names=1, stringsAsFactors=TRUE)
-exp.vanish.c <- exp.vanish[rownames(g.class),]
+exp.vanish.class <- read.csv("exp.vanish.class.txt", row.names=1, sep="", stringsAsFactors=TRUE)
+pred_van <- predict(rf, t(exp.vanish.class), type = "prob")
 
-pred_probs <- predict(rf, t(vanish.class), type = "prob")
-
-# Display the posterior probabilities
-head(pred_probs)
-pred_probs <- as.data.frame(pred_probs)
-pred_probs$chipID <- rownames(pred_probs)
-pred_pr
-write.table(pred_probs,file="posterior_probabilities_ALL.txt")
 
 ###
-### CTS and VANISH clinical associations
+### CTS and VANISH clinical associations for Placebo or Hydrocortisone treated only
 ###
 
-p3 <- read.csv("VANISH_CTS_assignments.csv", stringsAsFactors=TRUE)
-p3.2 <- subset(p3,p3$drug2=="Placebo"|p3$drug2=="Hydrocortisone")
+p3.2 <- read.csv("VANISH_CTS_assignments.csv", stringsAsFactors=TRUE)
 
 p3.2.cts1 <- subset(p3.2,p3.2$CTS_pred=="1")
 p3.2.cts2 <- subset(p3.2,p3.2$CTS_pred=="2")
@@ -236,7 +227,6 @@ dev.off()
 ####
 #### CTS association to clinical data MARS and GAINS
 ####
-
 
 c.1$CTS <- as.factor(c.1$CTS)
 
