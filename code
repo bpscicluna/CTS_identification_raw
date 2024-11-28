@@ -334,6 +334,8 @@ chisq.test(t.cor,simulate.p.value = T)
 #X-squared = 36.791, df = NA, p-value = 0.0004998
 
 
-
+####
+#### GSEA was performed together with AUcell analysis of scRNA-seq data from the sepsis blood single cell atlas (Kwok et al)
+####
 
 
