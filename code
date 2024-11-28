@@ -11,10 +11,9 @@ library(cluster)
 library(ggplot2)
 library(effects)
 library(rcompanion)
-
+library(twang)
 
 ### MARS, GAinS and Stanford subtype assignments binary heatmap
-
 dat.1 <- read.csv("Mars_SRS_Stanford_assigned.csv", row.names=1, stringsAsFactors=TRUE)
 dat.1m <- data.matrix(dat.1)
 png("binary_heatmap_consensus_overlap.png",height=600,width=2000,res=300)
@@ -34,9 +33,7 @@ pheatmap(t(dat.1m),
 dev.off()
 
 ### MCL clustering of jaccard distances
-
 dat.mcl <- read.table("mcl_jac_dist.txt",header=T)
-
 mcl.1 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=1)
 mcl.2 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=2)
 mcl.3 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=3)
@@ -49,7 +46,6 @@ mcl.9 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=9)
 mcl.10 <- mcl(x=dat.mcl, addLoops=T, allow1=F, inflation=10)
 
 ### core samples classifier and random forest
-
 exp.core.df <- read.csv("exp.core.df.txt", row.names=1, sep="", stringsAsFactors=TRUE)
 exp.core.m <- data.matrix(exp.core.df)
 core.cts <- read.csv("coreSamples_CTS_markup.csv", stringsAsFactors=TRUE)
@@ -78,7 +74,7 @@ pdf("silhouettes_COREsamples.pdf")
 plot(sil,col=c("royalblue", "#B2DF8A", "orange"))
 dev.off()
 
-### Jaccard distances used as input in Cytoscape together with prevalence (node size)
+### Jaccard distances used as input in Cytoscape together with prevalence of each (node size)
 
 ### Gene classifier heatmap
 
@@ -310,6 +306,32 @@ dev.off()
 ##### corticosteroids and MARS CTS
 #####
 
+MARS_cortico <- read.csv("MARS_cortico.csv", stringsAsFactors=TRUE)
+
+t.cor <- table(MARS_cortico$CTS,MARS_cortico$cortico_use)
+
+t.cor
+#       0   1
+#   1 100 160
+#   2  65 110
+#   3 151  92
+
+
+png("cortico_barplot_Mars_CTS.png",height=1500,width=1000,res=300)
+barplot(t(t.cor),ylim=c(0,400),col=c("grey","midnightblue"))
+dev.off()
+
+pairwiseNominalIndependence(t.cor, fisher = TRUE, gtest = TRUE, method = "BH")
+#   Comparison p.Fisher p.adj.Fisher  p.Gtest p.adj.Gtest  p.Chisq p.adj.Chisq
+#1      1 : 2 8.40e-01     8.40e-01 7.81e-01    7.81e-01 7.81e-01    7.81e-01
+#2      1 : 3 1.27e-07     3.81e-07 9.67e-08    2.90e-07 1.11e-07    3.33e-07
+#3      2 : 3 6.17e-07     9.26e-07 3.98e-07    5.97e-07 4.53e-07    6.80e-07
+
+chisq.test(t.cor,simulate.p.value = T)
+# 	Pearson's Chi-squared test with simulated p-value (based on 2000 replicates)
+#
+#data:  t.cor
+#X-squared = 36.791, df = NA, p-value = 0.0004998
 
 
 
