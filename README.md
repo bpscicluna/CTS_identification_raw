@@ -58,7 +58,7 @@ library(ggplot2)
 library(effects)
 library(rcompanion)
 library(twang)
-# Note: randomForest library is used but not explicitly loaded at the top.
+library(randomForest)
 ```
 
 ### Data Files
