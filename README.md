@@ -1,4 +1,4 @@
-# Consensus Transcriptomic Subtypes of Sepsis - R Analysis method to identify CTSs
+# R analysis tool to align different classification strategies and identify consensus transcriptomic subtypes of sepsis
 
 **Author:** Scicluna  
 **Last Updated:** August 2025
